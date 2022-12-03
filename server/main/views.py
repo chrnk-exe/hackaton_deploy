@@ -8,7 +8,7 @@ import math
 
 
 def sigmoid(x):
-  return 1 / (1 + math.exp(-x))
+    return 1 / (1 + math.exp(-x))
 
 
 class MainApi(APIView):
@@ -19,11 +19,9 @@ class MainApi(APIView):
         return Response('post')
 
 
-
 class CapacityApi(APIView):
     def get(self, request):
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiJ2a2lkMDAwMDAwMDAwIiwiZXhwIjoxNjg1NTc4NDA2fQ.U85uW7q-wpFg38kUekL8mc1YwvxYPTKu-9AZ-R5bj2A"
-
         headers = {"Authorization": f"Bearer {token}"}
 
         latitude, longitude = request.query_params.get('x'), request.query_params.get('y')
@@ -83,63 +81,32 @@ class CapacityApi(APIView):
 
 class AllCapacityApi(APIView):
     def get(self, request):
-        return Response(
-            [
-                {
-                    "success": True,
-                    "data": {
-                        "id": 205780,
-                        "prefix_id": 100029,
-                        "district": {
-                            "id": 100004,
-                            "name": "Кингисеппский ЛО",
-                            "is_updated": 1,
-                            "is_actual": 1
-                        },
-                        "house": "б/н",
-                        "full_address": "Кингисеппский район, поселок ж/д ст.Веймарн, дом б/н",
-                        "short_address": "Кингисеппский р-н, п ж/д ст.Веймарн, д. б/н",
-                        "latitude": 59.713474,
-                        "longitude": 28.727406
-                    }
-                },
-                {
-                    "success": True,
-                    "data": {
-                        "id": 221812,
-                        "prefix_id": 100079,
-                        "district": {
-                            "id": 100009,
-                            "name": "Выборгский ЛО",
-                            "is_updated": 1,
-                            "is_actual": 1
-                        },
-                        "house": "б/н",
-                        "liter": "Х",
-                        "full_address": "Выборгский район, Красносельская волость, п Лебедевка, дом б/н, литера Х",
-                        "short_address": "Выборгский район, Красносельская волость, п Лебедевка, д. б/н, л. Х",
-                        "latitude": 60.625065,
-                        "longitude": 28.951023
-                    }
-                },
-                {
-                    "success": True,
-                    "data": {
-                        "id": 221793,
-                        "prefix_id": 100079,
-                        "district": {
-                            "id": 100009,
-                            "name": "Выборгский ЛО",
-                            "is_updated": 1,
-                            "is_actual": 1
-                        },
-                        "house": "б/н",
-                        "liter": "А",
-                        "full_address": "Выборгский район, Красносельская волость, п Лебедевка, дом б/н, литера А",
-                        "short_address": "Выборгский район, Красносельская волость, п Лебедевка, д. б/н, л. А",
-                        "latitude": 60.625072,
-                        "longitude": 28.949005
-                    }
-                }
-            ]
-        , headers={'Access-Control-Allow-Origin': '*'})
+        token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiJ2a2lkMDAwMDAwMDAwIiwiZXhwIjoxNjg1NTc4NDA2fQ.U85uW7q-wpFg38kUekL8mc1YwvxYPTKu-9AZ-R5bj2A"
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = []
+
+        districts_count = request.query_params.get('districts_count')
+        count = request.query_params.get('count_for_district')
+
+        path = 'https://our-spb.gate.petersburg.ru/our_spb/geo/districts/all'
+        r = requests.get(path, headers=headers)
+        districts = r.json().get('data')
+
+        for district in districts[:int(districts_count)]:
+            district_id = district.get('id')
+
+            path = f'https://our-spb.gate.petersburg.ru/our_spb/problems/by_districts/{district_id}?format=common&count_on_page={count}'
+            r = requests.get(path, headers=headers)
+
+            problems_data = r.json().get('data')
+            if problems_data is not None:
+                for problem_data in problems_data:
+                    response.append({
+                        'reason': problem_data.get('reason', ''),
+                        'latitude': problem_data.get('latitude', ''),
+                        'longitude': problem_data.get('longitude', ''),
+                        'building': problem_data.get('building')
+                    })
+
+        return Response(response, headers={'Access-Control-Allow-Origin': '*'})
