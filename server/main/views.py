@@ -143,8 +143,3 @@ class AllCapacityApi(APIView):
                 }
             ]
         , headers={'Access-Control-Allow-Origin': '*'})
-
-
-def error_404_view(request, *args, **argv):
-    print('123123321')
-    return redirect('/')
