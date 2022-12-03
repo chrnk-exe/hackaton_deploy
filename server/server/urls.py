@@ -18,10 +18,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-handler404 = 'main.views.handler404'
 
 urlpatterns = [
-    path('', include('main.urls')),
-    path('admin/', admin.site.urls),
+   path('', include('main.urls')),
+   path('admin/', admin.site.urls),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+handler404 = 'main.views.error_404_view'
